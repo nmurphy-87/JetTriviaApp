@@ -29,20 +29,32 @@ import androidx.compose.ui.unit.sp
 import com.niallmurph.jettriviaapp.model.QuestionItem
 import com.niallmurph.jettriviaapp.screens.QuestionsViewModel
 import com.niallmurph.jettriviaapp.util.AppColours
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 
 @Composable
 fun Questions(viewModel: QuestionsViewModel) {
     val questions = viewModel.data.value.data?.toMutableList()
-    runBlocking {
-        delay(1000)
-    }
+
+    val questionIndex = remember { mutableStateOf(0) }
+
     if (viewModel.data.value.loading == true) {
         CircularProgressIndicator()
     } else {
-        if(questions != null) {
-            QuestionDisplay(question = questions.first())
+        val question = try {
+            questions?.get(questionIndex.value)
+        } catch (ex: Exception) {
+            null
+        }
+        if (questions != null) {
+            QuestionDisplay(
+                question = question!!,
+                questionIndex = questionIndex,
+                viewModel = viewModel,
+                onPreviousClicked = {
+                    questionIndex.value = questionIndex.value -1
+                }
+            ) {
+                questionIndex.value = questionIndex.value + 1
+            }
         }
     }
 }
@@ -66,9 +78,10 @@ fun DrawDottedLine(pathEffect: PathEffect) {
 @Composable
 fun QuestionDisplay(
     question: QuestionItem,
-    //questionIndex: MutableState<Int>,
-    //viewModel: QuestionsViewModel,
-    //onNextClicked: (Int) -> Unit
+    questionIndex: MutableState<Int>,
+    viewModel: QuestionsViewModel,
+    onPreviousClicked: (Int) -> Unit = {},
+    onNextClicked: (Int) -> Unit = {}
 ) {
     val choicesState = remember(question) { question.choices.toMutableList() }
     val answerState = remember(question) { mutableStateOf<Int?>(null) }
@@ -83,8 +96,7 @@ fun QuestionDisplay(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight()
-            .padding(4.dp),
+            .fillMaxHeight(),
         color = AppColours.mDarkPurple
     ) {
         Column(
@@ -93,7 +105,9 @@ fun QuestionDisplay(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start
         ) {
-            QuestionTracker()
+            QuestionTracker(
+                counter = questionIndex.value
+            )
             DrawDottedLine(pathEffect = pathEffect)
             Column() {
                 Text(
@@ -108,7 +122,7 @@ fun QuestionDisplay(
                     lineHeight = 24.sp
                 )
                 //Choices
-                choicesState.forEachIndexed { index, choices ->
+                choicesState.forEachIndexed { index, answerText ->
                     Row(
                         modifier = Modifier
                             .padding(4.dp)
@@ -118,8 +132,8 @@ fun QuestionDisplay(
                                 width = 4.dp,
                                 brush = Brush.linearGradient(
                                     colors = listOf(
-                                        AppColours.mDarkPurple,
-                                        AppColours.mDarkPurple
+                                        AppColours.mLightPurple,
+                                        AppColours.mLightPurple
                                     ),
                                 ), shape = RoundedCornerShape(12.dp)
                             )
@@ -150,7 +164,70 @@ fun QuestionDisplay(
                                     }
                                 )
                         )
-                        Text(choices)
+                        val annotatedString = buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    fontWeight = FontWeight.Light,
+                                    color = if (correctAnswerState.value == true && index == answerState.value) {
+                                        Color.Green.copy(alpha = 0.2f)
+                                    } else if (correctAnswerState.value == false && index == answerState.value) {
+                                        Color.Red.copy(alpha = 0.2f)
+                                    } else {
+                                        AppColours.mOffWhite
+                                    },
+                                    fontSize = 16.sp
+                                )
+                            ) {
+                                append(answerText)
+                            }
+                        }
+                        Text(annotatedString)
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ){
+                    Button(
+                        onClick = {
+                            onPreviousClicked(questionIndex.value)
+                        },
+                        modifier = Modifier
+                            .padding(4.dp),
+                        shape = RoundedCornerShape(36.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = AppColours.mLightBlue,
+                        )
+                    ) {
+                        Text(
+                            text = "Previous",
+                            modifier = Modifier
+                                .padding(4.dp),
+                            color = AppColours.mOffWhite,
+                            fontSize = 16.sp
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            onNextClicked(questionIndex.value)
+                        },
+                        modifier = Modifier
+                            .padding(4.dp),
+                        shape = RoundedCornerShape(36.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = AppColours.mLightBlue,
+                        )
+                    ) {
+                        Text(
+                            text = "Next",
+                            modifier = Modifier
+                                .padding(4.dp),
+                            color = AppColours.mOffWhite,
+                            fontSize = 16.sp
+                        )
                     }
                 }
             }
