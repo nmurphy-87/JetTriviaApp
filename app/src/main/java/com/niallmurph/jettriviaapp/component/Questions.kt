@@ -33,14 +33,9 @@ fun Questions(viewModel: QuestionsViewModel) {
     }
     if (viewModel.data.value.loading == true) {
         CircularProgressIndicator()
-        Log.d("Q_LIST_SIZE", "Size = Loading")
     } else {
         QuestionDisplay()
-        questions?.forEach {
-            Log.d("QUESTION", it.question)
-        }
     }
-    Log.d("Q_LIST_SIZE", "Size = ${questions?.size}")
 }
 
 @Composable
