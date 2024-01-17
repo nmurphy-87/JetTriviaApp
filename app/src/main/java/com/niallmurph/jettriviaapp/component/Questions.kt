@@ -5,11 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,9 +41,9 @@ fun Questions(viewModel: QuestionsViewModel) {
     if (viewModel.data.value.loading == true) {
         CircularProgressIndicator()
     } else {
-        QuestionDisplay(
-
-        )
+        if(questions != null) {
+            QuestionDisplay(question = questions.first())
+        }
     }
 }
 
@@ -67,12 +66,18 @@ fun DrawDottedLine(pathEffect: PathEffect) {
 @Composable
 fun QuestionDisplay(
     question: QuestionItem,
-    questionIndex: MutableState<Int>,
-    viewModel: QuestionsViewModel,
-    onNextClicked: (Int) -> Unit
+    //questionIndex: MutableState<Int>,
+    //viewModel: QuestionsViewModel,
+    //onNextClicked: (Int) -> Unit
 ) {
-    val choicesState = remember(question) {
-        question.choices.toMutableList()
+    val choicesState = remember(question) { question.choices.toMutableList() }
+    val answerState = remember(question) { mutableStateOf<Int?>(null) }
+    val correctAnswerState = remember { mutableStateOf<Boolean?>(null) }
+    val updateAnswer: (Int) -> Unit = remember(question) {
+        {
+            answerState.value = it
+            correctAnswerState.value = choicesState[it] == question.answer
+        }
     }
     val pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
     Surface(
@@ -92,7 +97,7 @@ fun QuestionDisplay(
             DrawDottedLine(pathEffect = pathEffect)
             Column() {
                 Text(
-                    "Lorem ipsum text",
+                    question.question,
                     modifier = Modifier
                         .padding(6.dp)
                         .align(alignment = Alignment.Start)
@@ -126,9 +131,26 @@ fun QuestionDisplay(
                                     bottomEndPercent = 50
                                 )
                             )
-                            .background(Color.Transparent)
+                            .background(Color.Transparent),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-
+                        RadioButton(
+                            selected = (answerState.value == index),
+                            onClick = {
+                                updateAnswer(index)
+                            },
+                            modifier = Modifier
+                                .padding(start = 16.dp),
+                            colors = RadioButtonDefaults
+                                .colors(
+                                    selectedColor = if (correctAnswerState.value == true && index == answerState.value) {
+                                        Color.Green.copy(alpha = 0.2f)
+                                    } else {
+                                        Color.Red.copy(alpha = 0.2f)
+                                    }
+                                )
+                        )
+                        Text(choices)
                     }
                 }
             }
