@@ -1,6 +1,7 @@
 package com.niallmurph.jettriviaapp.component
 
 import android.util.Log
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Surface
@@ -8,6 +9,8 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -28,20 +31,33 @@ fun Questions(viewModel: QuestionsViewModel) {
     runBlocking {
         delay(1000)
     }
-    if(viewModel.data.value.loading == true){
+    if (viewModel.data.value.loading == true) {
         CircularProgressIndicator()
-        Log.d("Q_LIST_SIZE", "Size = Loading")
     } else {
-        questions?.forEach {
-            Log.d("QUESTION", it.question)
-        }
+        QuestionDisplay()
     }
-    Log.d("Q_LIST_SIZE", "Size = ${questions?.size}")
+}
+
+@Composable
+fun DrawDottedLine(pathEffect: PathEffect) {
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(2.dp)
+    ) {
+        drawLine(
+            color = AppColours.mLightGray,
+            start = Offset(0f, 0f),
+            end = Offset(size.width, y = 0f),
+            pathEffect = pathEffect
+        )
+    }
 }
 
 @Preview
 @Composable
-fun QuestionDisplay(){
+fun QuestionDisplay() {
+    val pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f),0f)
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -54,8 +70,9 @@ fun QuestionDisplay(){
                 .padding(12.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start
-        ){
+        ) {
             QuestionTracker()
+            DrawDottedLine(pathEffect = pathEffect)
         }
     }
 }
@@ -63,14 +80,16 @@ fun QuestionDisplay(){
 @Preview
 @Composable
 fun QuestionTracker(
-    counter : Int = 10,
-    listSize : Int = 100
-){
+    counter: Int = 10,
+    listSize: Int = 100
+) {
     Text(
         text = buildAnnotatedString {
-            withStyle(style = ParagraphStyle(
-                textIndent = TextIndent.None
-            )) {
+            withStyle(
+                style = ParagraphStyle(
+                    textIndent = TextIndent.None
+                )
+            ) {
                 withStyle(
                     style = SpanStyle(
                         color = AppColours.mLightGray,
