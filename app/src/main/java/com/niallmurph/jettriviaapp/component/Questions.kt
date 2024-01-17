@@ -1,15 +1,22 @@
 package com.niallmurph.jettriviaapp.component
 
-import android.util.Log
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
@@ -20,6 +27,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.niallmurph.jettriviaapp.model.QuestionItem
 import com.niallmurph.jettriviaapp.screens.QuestionsViewModel
 import com.niallmurph.jettriviaapp.util.AppColours
 import kotlinx.coroutines.delay
@@ -34,7 +42,9 @@ fun Questions(viewModel: QuestionsViewModel) {
     if (viewModel.data.value.loading == true) {
         CircularProgressIndicator()
     } else {
-        QuestionDisplay()
+        QuestionDisplay(
+
+        )
     }
 }
 
@@ -54,10 +64,17 @@ fun DrawDottedLine(pathEffect: PathEffect) {
     }
 }
 
-@Preview
 @Composable
-fun QuestionDisplay() {
-    val pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f),0f)
+fun QuestionDisplay(
+    question: QuestionItem,
+    questionIndex: MutableState<Int>,
+    viewModel: QuestionsViewModel,
+    onNextClicked: (Int) -> Unit
+) {
+    val choicesState = remember(question) {
+        question.choices.toMutableList()
+    }
+    val pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -73,6 +90,48 @@ fun QuestionDisplay() {
         ) {
             QuestionTracker()
             DrawDottedLine(pathEffect = pathEffect)
+            Column() {
+                Text(
+                    "Lorem ipsum text",
+                    modifier = Modifier
+                        .padding(6.dp)
+                        .align(alignment = Alignment.Start)
+                        .fillMaxHeight(0.3f),
+                    fontSize = 16.sp,
+                    color = AppColours.mOffWhite,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 24.sp
+                )
+                //Choices
+                choicesState.forEachIndexed { index, choices ->
+                    Row(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .border(
+                                width = 4.dp,
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        AppColours.mDarkPurple,
+                                        AppColours.mDarkPurple
+                                    ),
+                                ), shape = RoundedCornerShape(12.dp)
+                            )
+                            .clip(
+                                RoundedCornerShape(
+                                    topStartPercent = 50,
+                                    topEndPercent = 50,
+                                    bottomStartPercent = 50,
+                                    bottomEndPercent = 50
+                                )
+                            )
+                            .background(Color.Transparent)
+                    ) {
+
+                    }
+                }
+            }
         }
     }
 }
