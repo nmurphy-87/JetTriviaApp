@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.ButtonDefaults.buttonColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +22,7 @@ import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,7 +52,7 @@ fun Questions(viewModel: QuestionsViewModel) {
                 questionIndex = questionIndex,
                 viewModel = viewModel,
                 onPreviousClicked = {
-                    questionIndex.value = questionIndex.value -1
+                    questionIndex.value = questionIndex.value - 1
                 }
             ) {
                 questionIndex.value = questionIndex.value + 1
@@ -105,9 +107,9 @@ fun QuestionDisplay(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start
         ) {
-            QuestionTracker(
-                counter = questionIndex.value
-            )
+            if (questionIndex.value >= 3) ShowProgress(score = questionIndex.value)
+
+            QuestionTracker(counter = questionIndex.value)
             DrawDottedLine(pathEffect = pathEffect)
             Column() {
                 Text(
@@ -190,7 +192,7 @@ fun QuestionDisplay(
                         .padding(8.dp)
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround
-                ){
+                ) {
                     Button(
                         onClick = {
                             onPreviousClicked(questionIndex.value)
@@ -271,4 +273,63 @@ fun QuestionTracker(
         },
         modifier = Modifier.padding(18.dp)
     )
+}
+
+@Preview
+@Composable
+fun ShowProgress(score: Int = 12) {
+
+    val gradient = Brush.linearGradient(listOf(Color(0xFFF95075), Color(0xFFBE6BE5)))
+    val progressFactor = remember(score) { mutableStateOf(score * 0.005f) }
+
+    Row(
+        modifier = Modifier
+            .padding(4.dp)
+            .fillMaxWidth()
+            .height(40.dp)
+            .border(
+                width = 2.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        AppColours.mLightPurple, AppColours.mLightPurple
+                    )
+                ),
+                shape = RoundedCornerShape(33.dp)
+            )
+            .clip(
+                RoundedCornerShape(
+                    topStartPercent = 50,
+                    topEndPercent = 50,
+                    bottomStartPercent = 50,
+                    bottomEndPercent = 50
+                )
+            )
+            .background(Color.Transparent),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Button(
+            contentPadding = PaddingValues(1.dp),
+            onClick = {},
+            modifier = Modifier
+                .fillMaxWidth(progressFactor.value)
+                .background(brush = gradient),
+            enabled = false,
+            elevation = null,
+            colors = buttonColors(
+                backgroundColor = Color.Transparent,
+                disabledBackgroundColor = Color.Transparent
+            )
+        ) {
+            Text(
+                text = "${score*10}",
+                modifier = Modifier
+                    .clip(shape = RoundedCornerShape(23.dp))
+                    .fillMaxHeight(0.87f)
+                    .fillMaxWidth()
+                    .padding(6.dp),
+                color = AppColours.mOffWhite,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
 }
